@@ -26,8 +26,6 @@ const state = {
   view: { x0: -1, x1: 80, y0: -1, y1: 45 },
   drag: null,
   frame: 0,
-  lastSearch: "",
-  searchIndex: 0,
 };
 
 function dataUrl() {
@@ -58,7 +56,7 @@ function prepareData(data) {
   state.nodes = data.nodes;
   state.actions = data.actions.map((action) => ({
     ...action,
-    enabled: true,
+    enabled: ["h0", "h1", "h2"].includes(action.name),
     productsBySource: new Map(action.products.map((product) => [product.source, product.targets])),
   }));
   for (const node of state.nodes) {
@@ -90,7 +88,7 @@ function installActionToggles() {
     label.style.setProperty("--action-color", action.color);
     const input = document.createElement("input");
     input.type = "checkbox";
-    input.checked = true;
+    input.checked = action.enabled;
     input.addEventListener("change", () => {
       state.actions[index].enabled = input.checked;
       updateInspector();
@@ -381,16 +379,8 @@ function nearestVisibleNode(x, y) {
   return best;
 }
 
-function selectNode(id, center = false) {
+function selectNode(id) {
   state.selected = id;
-  const node = state.nodes[id];
-  if (center) {
-    const width = Math.min(48, state.view.x1 - state.view.x0);
-    const height = Math.min(34, state.view.y1 - state.view.y0);
-    const x0 = Math.max(0, node.stem - width / 2);
-    const y0 = Math.max(0, node.s - height / 2);
-    state.view = { x0, x1: x0 + width, y0, y1: y0 + height };
-  }
   updateInspector();
   requestDraw();
 }
@@ -539,44 +529,6 @@ canvas.addEventListener("pointerleave", () => {
 document.getElementById("zoom-in").addEventListener("click", () => zoomAt(0.72));
 document.getElementById("zoom-out").addEventListener("click", () => zoomAt(1.38));
 document.getElementById("fit-view").addEventListener("click", fitAll);
-
-document.getElementById("search-form").addEventListener("submit", (event) => {
-  event.preventDefault();
-  const query = document.getElementById("search-input").value.trim();
-  const matches = searchNodes(query);
-  if (!matches.length) {
-    document.getElementById("search-input").setCustomValidity("No matching class");
-    document.getElementById("search-input").reportValidity();
-    return;
-  }
-  document.getElementById("search-input").setCustomValidity("");
-  if (state.lastSearch === query) state.searchIndex = (state.searchIndex + 1) % matches.length;
-  else state.searchIndex = 0;
-  state.lastSearch = query;
-  selectNode(matches[state.searchIndex].id, true);
-});
-
-function searchNodes(query) {
-  let match = query.match(/^m(\d+)$/i);
-  if (match) return state.nodes[Number(match[1])] ? [state.nodes[Number(match[1])]] : [];
-  match = query.match(/^g(\d+)$/i);
-  if (match) {
-    const basisId = Number(match[1]);
-    return state.nodes.filter((node) => node.coordinates.includes(basisId));
-  }
-  match = query.match(/^x(\d+)$/i);
-  if (match) {
-    const generatorId = Number(match[1]);
-    return state.nodes.filter((node) => node.factors.length === 1 && node.factors[0] === generatorId);
-  }
-  match = query.match(/^(-?\d+)\s*,\s*(-?\d+)$/);
-  if (match) return state.groups.get(`${Number(match[1])},${Number(match[2])}`) || [];
-  const generator = state.data.generators.find((item) => item.name.toLowerCase() === query.toLowerCase());
-  if (generator) {
-    return state.nodes.filter((node) => node.factors.length === 1 && node.factors[0] === generator.id);
-  }
-  return [];
-}
 
 function formatRange(min, max) {
   return `${Math.max(0, Math.ceil(min))}–${Math.floor(max)}`;

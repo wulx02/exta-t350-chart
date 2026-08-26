@@ -102,38 +102,10 @@ button:hover {
   background: var(--action-color);
 }
 
-.search {
-  display: flex;
-  flex: 1;
-  justify-content: flex-end;
-  min-width: 180px;
-}
-
-.search input {
-  width: min(320px, 100%);
-  height: 32px;
-  border: 1px solid #c8ced8;
-  border-right: 0;
-  border-radius: 4px 0 0 4px;
-  padding: 0 9px;
-  color: #172033;
-  background: #fff;
-  outline: none;
-}
-
-.search input:focus {
-  border-color: #5d6b82;
-  box-shadow: inset 0 0 0 1px #5d6b82;
-}
-
-.search button {
-  border-radius: 0 4px 4px 0;
-  padding: 0 12px;
-}
-
 .view-tools {
   display: flex;
   gap: 4px;
+  margin-left: auto;
 }
 
 .view-tools button {
@@ -309,8 +281,7 @@ button:hover {
     display: grid;
     grid-template-areas:
       "identity identity"
-      "actions tools"
-      "search search";
+      "actions tools";
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px 12px;
   }
@@ -331,11 +302,8 @@ button:hover {
 
   .view-tools {
     grid-area: tools;
-  }
-
-  .search {
-    grid-area: search;
-    min-width: 0;
+    justify-self: end;
+    margin-left: 0;
   }
 
   .workspace {
