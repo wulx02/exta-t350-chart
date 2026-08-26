@@ -114,21 +114,34 @@ function setInitialView() {
   }
   state.extent = { maxStem, maxS };
   state.view = {
-    x0: -1,
+    x0: 0,
     x1: Math.min(maxStem + 1, 90),
-    y0: -1,
+    y0: 0,
     y1: Math.min(maxS + 1, 50),
   };
 }
 
 function fitAll() {
   state.view = {
-    x0: -2,
+    x0: 0,
     x1: state.extent.maxStem + 2,
-    y0: -2,
+    y0: 0,
     y1: state.extent.maxS + 2,
   };
   requestDraw();
+}
+
+function constrainToFirstQuadrant(view) {
+  const constrained = { ...view };
+  if (constrained.x0 < 0) {
+    constrained.x1 -= constrained.x0;
+    constrained.x0 = 0;
+  }
+  if (constrained.y0 < 0) {
+    constrained.y1 -= constrained.y0;
+    constrained.y0 = 0;
+  }
+  return constrained;
 }
 
 function resizeCanvas() {
@@ -374,12 +387,9 @@ function selectNode(id, center = false) {
   if (center) {
     const width = Math.min(48, state.view.x1 - state.view.x0);
     const height = Math.min(34, state.view.y1 - state.view.y0);
-    state.view = {
-      x0: Math.max(-1, node.stem - width / 2),
-      x1: Math.max(-1, node.stem - width / 2) + width,
-      y0: Math.max(-1, node.s - height / 2),
-      y1: Math.max(-1, node.s - height / 2) + height,
-    };
+    const x0 = Math.max(0, node.stem - width / 2);
+    const y0 = Math.max(0, node.s - height / 2);
+    state.view = { x0, x1: x0 + width, y0, y1: y0 + height };
   }
   updateInspector();
   requestDraw();
@@ -456,12 +466,12 @@ function zoomAt(factor, screenX = state.width / 2, screenY = state.height / 2) {
   const height = (state.view.y1 - state.view.y0) * factor;
   const xRatio = (screenX - margin.left) / scales().width;
   const yRatio = 1 - (screenY - margin.top) / scales().height;
-  state.view = {
+  state.view = constrainToFirstQuadrant({
     x0: anchor.x - width * xRatio,
     x1: anchor.x + width * (1 - xRatio),
     y0: anchor.y - height * yRatio,
     y1: anchor.y + height * (1 - yRatio),
-  };
+  });
   requestDraw();
 }
 
@@ -491,12 +501,12 @@ canvas.addEventListener("pointermove", (event) => {
     const dy = event.clientY - state.drag.y;
     state.drag.moved ||= Math.abs(dx) + Math.abs(dy) > 3;
     const scale = scales();
-    state.view = {
+    state.view = constrainToFirstQuadrant({
       x0: state.drag.view.x0 - dx / scale.x,
       x1: state.drag.view.x1 - dx / scale.x,
       y0: state.drag.view.y0 + dy / scale.y,
       y1: state.drag.view.y1 + dy / scale.y,
-    };
+    });
     hoverLabel.hidden = true;
     requestDraw();
     return;
@@ -507,7 +517,7 @@ canvas.addEventListener("pointermove", (event) => {
     return;
   }
   hoverLabel.hidden = false;
-  hoverLabel.textContent = `m${node.id} · (${node.stem}, ${node.s}) · ${formatFactors(node.factors)}`;
+  hoverLabel.textContent = `m${node.id} = ${formatFactors(node.factors)}`;
   hoverLabel.style.left = `${Math.min(state.width - 320, x + 12)}px`;
   hoverLabel.style.top = `${Math.max(4, y - 32)}px`;
 });
