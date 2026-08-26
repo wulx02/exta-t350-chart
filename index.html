@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive Adams chart for Ext_A through internal degree t = 350, with h0, h1, and h2 multiplication.">
+  <title>Ext_A through t = 350</title>
+  <link rel="stylesheet" href="styles.css?v=1">
+</head>
+<body>
+  <header class="toolbar">
+    <div class="identity">
+      <strong>Ext<sub>A</sub></strong>
+      <span id="dataset-meta">Loading canonical data</span>
+    </div>
+    <div id="action-toggles" class="action-toggles" aria-label="Multiplication lines"></div>
+    <form id="search-form" class="search" role="search">
+      <input id="search-input" type="search" autocomplete="off" spellcheck="false" placeholder="m123, g456, h2, or stem,s" aria-label="Find a class">
+      <button type="submit">Find</button>
+    </form>
+    <div class="view-tools" aria-label="Chart view">
+      <button id="zoom-out" type="button" title="Zoom out" aria-label="Zoom out">−</button>
+      <button id="zoom-in" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+      <button id="fit-view" type="button" title="Fit all classes">Fit</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="plot-shell" aria-label="Adams chart">
+      <canvas id="chart"></canvas>
+      <div id="hover-label" class="hover-label" hidden></div>
+      <div id="loading" class="loading">Reading chart data</div>
+      <div class="axis-label axis-x">stem t-s</div>
+      <div class="axis-label axis-y">filtration s</div>
+    </section>
+    <aside id="inspector" class="inspector">
+      <div class="inspector-head">
+        <span class="eyebrow">Selected class</span>
+        <strong id="selected-name">None</strong>
+      </div>
+      <dl id="selected-details" class="details"></dl>
+      <div id="selected-actions" class="selected-actions"></div>
+    </aside>
+  </main>
+
+  <footer class="statusbar">
+    <span id="viewport-status"></span>
+    <span id="render-status"></span>
+  </footer>
+  <script src="app.js?v=1"></script>
+</body>
+</html>
