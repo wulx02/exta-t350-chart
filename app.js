@@ -395,11 +395,10 @@ function updateInspector() {
   const node = state.nodes[state.selected];
   selectedName.textContent = `m${node.id} = ${formatFactors(node.factors)}`;
   selectedDetails.innerHTML = [
-    ["Bidegree", `(${node.s}, ${node.t})`],
-    ["Chart", `(${node.stem}, ${node.s})`],
+    ["(s,t)", `(${node.s}, ${node.t})`],
+    ["(stem,s)", `(${node.stem}, ${node.s})`],
     ["Multiplicity", `${node.groupIndex + 1} of ${node.groupSize}`],
     ["Factors", `<code>${escapeHtml(formatFactors(node.factors))}</code>`],
-    ["Coordinates", `<code>${escapeHtml(formatCoordinates(node.coordinates))}</code>`],
   ].map(([term, value]) => `<dt>${term}</dt><dd>${value}</dd>`).join("");
   selectedActions.replaceChildren();
   for (const action of state.actions) {
@@ -433,11 +432,6 @@ function formatFactors(factors) {
     index = end;
   }
   return parts.join(" ");
-}
-
-function formatCoordinates(coordinates) {
-  const shown = coordinates.slice(0, 24).map((id) => `g${id}`).join(" + ");
-  return coordinates.length > 24 ? `${shown} + … (${coordinates.length} terms)` : shown;
 }
 
 function escapeHtml(value) {
