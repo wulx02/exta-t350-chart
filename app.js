@@ -13,7 +13,7 @@ const selectedDetails = document.getElementById("selected-details");
 const selectedActions = document.getElementById("selected-actions");
 const actionToggles = document.getElementById("action-toggles");
 
-const margin = { left: 48, right: 14, top: 14, bottom: 34 };
+const margin = { left: 58, right: 14, top: 14, bottom: 50 };
 const tilt = -17 * Math.PI / 180;
 const state = {
   data: null,
@@ -208,47 +208,92 @@ function draw() {
   viewportStatus.textContent = `stem ${formatRange(state.view.x0, state.view.x1)} · s ${formatRange(state.view.y0, state.view.y1)}`;
 }
 
-function gridStep(pixelsPerUnit) {
-  const choices = [1, 2, 5, 10, 20, 50, 100];
-  return choices.find((step) => step * pixelsPerUnit >= 45) || 200;
+function gridStep(pixelsPerUnit, minimumSpacing) {
+  const rawStep = Math.max(1, minimumSpacing / Math.max(pixelsPerUnit, Number.EPSILON));
+  const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+  const normalized = rawStep / magnitude;
+  const niceMultiplier = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+  return Math.max(1, niceMultiplier * magnitude);
 }
 
 function drawGrid() {
   const scale = scales();
-  const xStep = gridStep(scale.x);
-  const yStep = gridStep(scale.y);
+  const xTicks = gridTicks(state.view.x0, state.view.x1, gridStep(scale.x, 72));
+  const yTicks = gridTicks(state.view.y0, state.view.y1, gridStep(scale.y, 48));
+
   ctx.save();
   ctx.beginPath();
   ctx.rect(margin.left, margin.top, scale.width, scale.height);
   ctx.clip();
-  drawGridAxis("x", xStep, state.view.x0, state.view.x1);
-  drawGridAxis("y", yStep, state.view.y0, state.view.y1);
+  drawGridLines("x", xTicks);
+  drawGridLines("y", yTicks);
   ctx.restore();
+
   ctx.strokeStyle = "#aab3c0";
   ctx.lineWidth = 1;
   ctx.strokeRect(margin.left + 0.5, margin.top + 0.5, scale.width, scale.height);
+  drawGridLabels("x", xTicks);
+  drawGridLabels("y", yTicks);
 }
 
-function drawGridAxis(axis, step, min, max) {
+function gridTicks(min, max, step) {
+  const ticks = [];
   const first = Math.max(0, Math.ceil(min / step) * step);
-  ctx.font = "11px ui-sans-serif, system-ui, sans-serif";
-  ctx.fillStyle = "#667085";
+  for (let value = first; value <= max + step * 1e-9; value += step) {
+    ticks.push(value);
+  }
+  return ticks;
+}
+
+function drawGridLines(axis, ticks) {
   ctx.strokeStyle = "#e4e8ee";
   ctx.lineWidth = 1;
-  for (let value = first; value <= max; value += step) {
+  for (const value of ticks) {
     const point = axis === "x" ? worldToScreen(value, 0) : worldToScreen(0, value);
     ctx.beginPath();
     if (axis === "x") {
       ctx.moveTo(point.x + 0.5, margin.top);
       ctx.lineTo(point.x + 0.5, state.height - margin.bottom);
-      ctx.fillText(String(value), point.x + 3, state.height - margin.bottom + 16);
     } else {
       ctx.moveTo(margin.left, point.y + 0.5);
       ctx.lineTo(state.width - margin.right, point.y + 0.5);
-      ctx.fillText(String(value), 7, point.y - 3);
     }
     ctx.stroke();
   }
+}
+
+function drawGridLabels(axis, ticks) {
+  const plotBottom = state.height - margin.bottom;
+  ctx.save();
+  ctx.font = '11px "Avenir Next", Avenir, "Segoe UI", system-ui, sans-serif';
+  ctx.fillStyle = "#5f6b7e";
+  ctx.strokeStyle = "#aab3c0";
+  ctx.lineWidth = 1;
+
+  if (axis === "x") {
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+  } else {
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+  }
+
+  for (const value of ticks) {
+    const point = axis === "x" ? worldToScreen(value, 0) : worldToScreen(0, value);
+    ctx.beginPath();
+    if (axis === "x") {
+      ctx.moveTo(point.x + 0.5, plotBottom);
+      ctx.lineTo(point.x + 0.5, plotBottom + 5);
+      ctx.stroke();
+      ctx.fillText(String(value), point.x, plotBottom + 8);
+    } else {
+      ctx.moveTo(margin.left - 5, point.y + 0.5);
+      ctx.lineTo(margin.left, point.y + 0.5);
+      ctx.stroke();
+      ctx.fillText(String(value), margin.left - 9, point.y);
+    }
+  }
+  ctx.restore();
 }
 
 function pointVisible(node, padding = 1) {
