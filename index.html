@@ -3,14 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Interactive Adams chart for Ext_A through internal degree t = 350, with multiplication by h0 through h8.">
-  <title>Ext_A through t = 350</title>
-  <link rel="stylesheet" href="styles.css?v=4">
+  <meta name="description" content="Interactive Adams chart for Ext over the mod-2 Steenrod algebra through internal degree t = 350, with multiplication by h_0 through h_8.">
+  <title>Ext_𝒜 through t = 350</title>
+  <link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
   <header class="toolbar">
     <div class="identity">
-      <strong>Ext<sub>A</sub></strong>
+      <strong class="chart-title">
+        <math class="math-expression" aria-label="Ext over the Steenrod algebra A">
+          <msub><mi mathvariant="normal">Ext</mi><mi>𝒜</mi></msub>
+        </math>
+      </strong>
       <span id="dataset-meta">Loading canonical data</span>
     </div>
     <div id="action-toggles" class="action-toggles" aria-label="Multiplication lines"></div>
@@ -26,8 +30,8 @@
       <canvas id="chart"></canvas>
       <div id="hover-label" class="hover-label" hidden></div>
       <div id="loading" class="loading">Reading chart data</div>
-      <div class="axis-label axis-x">stem t-s</div>
-      <div class="axis-label axis-y">filtration s</div>
+      <div class="axis-label axis-x">stem <math aria-label="t minus s"><mrow><mi>t</mi><mo>−</mo><mi>s</mi></mrow></math></div>
+      <div class="axis-label axis-y">filtration <math aria-label="s"><mi>s</mi></math></div>
     </section>
     <aside id="inspector" class="inspector">
       <div class="inspector-head">
@@ -43,6 +47,6 @@
     <span id="viewport-status"></span>
     <span id="render-status"></span>
   </footer>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

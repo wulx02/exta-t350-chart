@@ -97,7 +97,7 @@ function installActionToggles() {
     const swatch = document.createElement("span");
     swatch.className = "action-swatch";
     const text = document.createElement("span");
-    text.textContent = action.name;
+    text.innerHTML = formatGeneratorMathHtml(action.name);
     label.append(input, swatch, text);
     actionToggles.append(label);
   });
@@ -393,12 +393,12 @@ function updateInspector() {
     return;
   }
   const node = state.nodes[state.selected];
-  selectedName.textContent = `m${node.id} = ${formatFactors(node.factors)}`;
+  selectedName.innerHTML = formatClassMathHtml(node);
   selectedDetails.innerHTML = [
     ["(s,t)", `(${node.s}, ${node.t})`],
     ["(stem,s)", `(${node.stem}, ${node.s})`],
     ["Multiplicity", `${node.groupIndex + 1} of ${node.groupSize}`],
-    ["Factors", `<code>${escapeHtml(formatFactors(node.factors))}</code>`],
+    ["Factors", formatFactorsMathHtml(node.factors)],
   ].map(([term, value]) => `<dt>${term}</dt><dd>${value}</dd>`).join("");
   selectedActions.replaceChildren();
   for (const action of state.actions) {
@@ -406,32 +406,103 @@ function updateInspector() {
     row.className = "selected-action";
     const title = document.createElement("div");
     title.className = "action-title";
-    title.innerHTML = `<span class="action-swatch" style="--action-color:${action.color}"></span><span>${escapeHtml(action.name)} · m${node.id}</span>`;
+    title.innerHTML = `<span class="action-swatch" style="--action-color:${action.color}"></span>${formatActionMathHtml(action.name, node.id)}`;
     const value = document.createElement("div");
     value.className = "action-value";
     if (node.t + action.t > state.data.t_max) {
       value.textContent = "outside t cutoff";
     } else {
       const targets = action.productsBySource.get(node.id) || [];
-      value.textContent = targets.length ? targets.map((id) => `m${id}`).join(" + ") : "0";
+      value.innerHTML = formatTargetSumMathHtml(targets);
     }
     row.append(title, value);
     selectedActions.append(row);
   }
 }
 
-function formatFactors(factors) {
-  if (!factors.length) return "1";
-  const parts = [];
+function factorGroups(factors) {
+  const groups = [];
   for (let index = 0; index < factors.length;) {
     const id = factors[index];
     let end = index + 1;
     while (end < factors.length && factors[end] === id) end += 1;
-    const name = state.data.generators[id]?.name || `x${id}`;
-    parts.push(end - index === 1 ? name : `${name}^${end - index}`);
+    groups.push({ id, exponent: end - index });
     index = end;
   }
-  return parts.join(" ");
+  return groups;
+}
+
+function formatFactorsText(factors) {
+  if (!factors.length) return "1";
+  return factorGroups(factors).map(({ id, exponent }) => {
+    const name = state.data.generators[id]?.name || `x${id}`;
+    return exponent === 1 ? name : `${name}^${exponent}`;
+  }).join(" ");
+}
+
+function generatorMathNode(name, exponent = 1) {
+  const hMatch = /^h(\d+)$/.exec(name);
+  const xMatch = /^x_\{(\d+(?:,\d+)*)\}$/.exec(name);
+  let symbol;
+  let subscript;
+
+  if (hMatch) {
+    symbol = "<mi>h</mi>";
+    subscript = `<mn>${hMatch[1]}</mn>`;
+  } else if (xMatch) {
+    symbol = "<mi>x</mi>";
+    const indices = xMatch[1].split(",");
+    subscript = `<mrow>${indices.map((value) => `<mn>${value}</mn>`).join("<mo>,</mo>")}</mrow>`;
+  } else {
+    const fallback = `<mi>${escapeHtml(name)}</mi>`;
+    return exponent === 1 ? fallback : `<msup>${fallback}<mn>${exponent}</mn></msup>`;
+  }
+
+  return exponent === 1
+    ? `<msub>${symbol}${subscript}</msub>`
+    : `<msubsup>${symbol}${subscript}<mn>${exponent}</mn></msubsup>`;
+}
+
+function classMathNode(id) {
+  return `<msub><mi>m</mi><mn>${id}</mn></msub>`;
+}
+
+function factorsMathNodes(factors) {
+  if (!factors.length) return "<mn>1</mn>";
+  return factorGroups(factors)
+    .map(({ id, exponent }) => {
+      const name = state.data.generators[id]?.name || `x${id}`;
+      return generatorMathNode(name, exponent);
+    })
+    .join('<mspace width="0.22em"></mspace>');
+}
+
+function wrapMath(content, label, extraClass = "") {
+  const className = ["math-expression", extraClass].filter(Boolean).join(" ");
+  return `<math class="${className}" aria-label="${escapeHtml(label)}"><mrow>${content}</mrow></math>`;
+}
+
+function formatGeneratorMathHtml(name) {
+  return wrapMath(generatorMathNode(name), name);
+}
+
+function formatFactorsMathHtml(factors) {
+  return wrapMath(factorsMathNodes(factors), formatFactorsText(factors));
+}
+
+function formatClassMathHtml(node) {
+  const label = `m${node.id} = ${formatFactorsText(node.factors)}`;
+  return wrapMath(`${classMathNode(node.id)}<mo>=</mo>${factorsMathNodes(node.factors)}`, label, "class-expression");
+}
+
+function formatActionMathHtml(actionName, nodeId) {
+  return wrapMath(`${generatorMathNode(actionName)}<mo>·</mo>${classMathNode(nodeId)}`, `${actionName} times m${nodeId}`);
+}
+
+function formatTargetSumMathHtml(targets) {
+  if (!targets.length) return wrapMath("<mn>0</mn>", "0");
+  const content = targets.map((id) => classMathNode(id)).join("<mo>+</mo>");
+  return wrapMath(content, targets.map((id) => `m${id}`).join(" plus "));
 }
 
 function escapeHtml(value) {
@@ -501,7 +572,7 @@ canvas.addEventListener("pointermove", (event) => {
     return;
   }
   hoverLabel.hidden = false;
-  hoverLabel.textContent = `m${node.id} = ${formatFactors(node.factors)}`;
+  hoverLabel.innerHTML = formatClassMathHtml(node);
   hoverLabel.style.left = `${Math.min(state.width - 320, x + 12)}px`;
   hoverLabel.style.top = `${Math.max(4, y - 32)}px`;
 });
