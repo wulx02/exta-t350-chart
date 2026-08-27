@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Interactive Adams chart for Ext over the mod-2 Steenrod algebra through internal degree t = 350, with multiplication by h_0 through h_8.">
   <title>Ext_𝒜 through t = 350</title>
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
   <header class="toolbar">
@@ -18,6 +18,19 @@
       <span id="dataset-meta">Loading canonical data</span>
     </div>
     <div id="action-toggles" class="action-toggles" aria-label="Multiplication lines"></div>
+    <form id="search-form" class="search" role="search">
+      <input
+        id="search-input"
+        type="search"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="m + digits"
+        title="Enter m followed by digits, for example m68130"
+        aria-label="Search for a class by its m number"
+        disabled
+      >
+      <button id="search-button" type="submit" disabled>Search</button>
+    </form>
     <div class="view-tools" aria-label="Chart view">
       <button id="zoom-out" type="button" title="Zoom out" aria-label="Zoom out">−</button>
       <button id="zoom-in" type="button" title="Zoom in" aria-label="Zoom in">+</button>
@@ -47,6 +60,6 @@
     <span id="viewport-status"></span>
     <span id="render-status"></span>
   </footer>
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>

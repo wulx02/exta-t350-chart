@@ -12,6 +12,9 @@ const selectedName = document.getElementById("selected-name");
 const selectedDetails = document.getElementById("selected-details");
 const selectedActions = document.getElementById("selected-actions");
 const actionToggles = document.getElementById("action-toggles");
+const searchForm = document.getElementById("search-form");
+const searchInput = document.getElementById("search-input");
+const searchButton = document.getElementById("search-button");
 
 const margin = { left: 58, right: 14, top: 14, bottom: 50 };
 const tilt = -17 * Math.PI / 180;
@@ -42,6 +45,8 @@ async function initialize() {
     }
     prepareData(data);
     installActionToggles();
+    searchInput.disabled = false;
+    searchButton.disabled = false;
     resizeCanvas();
     setInitialView();
     loading.hidden = true;
@@ -424,8 +429,16 @@ function nearestVisibleNode(x, y) {
   return best;
 }
 
-function selectNode(id) {
+function selectNode(id, center = false) {
   state.selected = id;
+  const node = state.nodes[id];
+  if (center) {
+    const width = Math.min(48, state.view.x1 - state.view.x0);
+    const height = Math.min(34, state.view.y1 - state.view.y0);
+    const x0 = Math.max(0, node.wx - width / 2);
+    const y0 = Math.max(0, node.wy - height / 2);
+    state.view = { x0, x1: x0 + width, y0, y1: y0 + height };
+  }
   updateInspector();
   requestDraw();
 }
@@ -639,6 +652,31 @@ canvas.addEventListener("pointerleave", () => {
 document.getElementById("zoom-in").addEventListener("click", () => zoomAt(0.72));
 document.getElementById("zoom-out").addEventListener("click", () => zoomAt(1.38));
 document.getElementById("fit-view").addEventListener("click", fitAll);
+
+searchInput.addEventListener("input", () => searchInput.setCustomValidity(""));
+
+searchForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const query = searchInput.value.trim();
+  const match = query.match(/^m(\d+)$/i);
+
+  if (!match) {
+    searchInput.setCustomValidity("Enter m followed by digits, for example m68130.");
+    searchInput.reportValidity();
+    return;
+  }
+
+  const node = state.nodes[Number(match[1])];
+  if (!node) {
+    searchInput.setCustomValidity(`Class m${match[1]} was not found.`);
+    searchInput.reportValidity();
+    return;
+  }
+
+  searchInput.setCustomValidity("");
+  searchInput.value = `m${node.id}`;
+  selectNode(node.id, true);
+});
 
 function formatRange(min, max) {
   return `${Math.max(0, Math.ceil(min))}–${Math.floor(max)}`;
