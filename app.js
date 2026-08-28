@@ -59,11 +59,16 @@ async function initialize() {
 function prepareData(data) {
   state.data = data;
   state.nodes = data.nodes;
-  state.actions = data.actions.map((action) => ({
-    ...action,
-    enabled: ["h0", "h1", "h2"].includes(action.name),
-    productsBySource: new Map(action.products.map((product) => [product.source, product.targets])),
-  }));
+  state.actions = data.actions.map((action) => {
+    const exactProducts = action.products.filter((product) => product.targets.length === 1);
+    return {
+      ...action,
+      enabled: ["h0", "h1", "h2"].includes(action.name),
+      productsBySource: new Map(action.products.map((product) => [product.source, product.targets])),
+      exactProducts,
+      exactTargetBySource: new Map(exactProducts.map((product) => [product.source, product.targets[0]])),
+    };
+  });
   for (const node of state.nodes) {
     const key = `${node.stem},${node.s}`;
     if (!state.groups.has(key)) state.groups.set(key, []);
@@ -208,8 +213,8 @@ function draw() {
   const elapsed = performance.now() - start;
   const shownEdges = state.actions
     .filter((action) => action.enabled)
-    .reduce((sum, action) => sum + action.target_terms, 0);
-  renderStatus.textContent = `${state.visibleNodes.length.toLocaleString()} visible · ${shownEdges.toLocaleString()} enabled edges · ${elapsed.toFixed(0)} ms`;
+    .reduce((sum, action) => sum + action.exactProducts.length, 0);
+  renderStatus.textContent = `${state.visibleNodes.length.toLocaleString()} visible · ${shownEdges.toLocaleString()} exact-product edges · ${elapsed.toFixed(0)} ms`;
   viewportStatus.textContent = `stem ${formatRange(state.view.x0, state.view.x1)} · s ${formatRange(state.view.y0, state.view.y1)}`;
 }
 
@@ -325,17 +330,15 @@ function drawEdges() {
     ctx.strokeStyle = colorWithAlpha(action.color, dimmed ? 0.055 : 0.18);
     ctx.lineWidth = dimmed ? 0.55 : 0.75;
     ctx.beginPath();
-    for (const product of action.products) {
+    for (const product of action.exactProducts) {
       const source = state.nodes[product.source];
       if (!pointVisible(source, action.t + action.s + 2)) continue;
       const a = worldToScreen(source.wx, source.wy);
-      for (const targetId of product.targets) {
-        const target = state.nodes[targetId];
-        if (!pointVisible(target, action.t + action.s + 2)) continue;
-        const b = worldToScreen(target.wx, target.wy);
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
-      }
+      const target = state.nodes[product.targets[0]];
+      if (!pointVisible(target, action.t + action.s + 2)) continue;
+      const b = worldToScreen(target.wx, target.wy);
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
     }
     ctx.stroke();
   }
@@ -382,16 +385,17 @@ function drawSelectionEdges() {
     ctx.strokeStyle = colorWithAlpha(action.color, 0.92);
     ctx.lineWidth = 2;
     ctx.beginPath();
-    const outgoing = action.productsBySource.get(selected.id) || [];
     const a = worldToScreen(selected.wx, selected.wy);
-    for (const targetId of outgoing) {
-      const target = state.nodes[targetId];
+    const outgoingTargetId = action.exactTargetBySource.get(selected.id);
+    if (outgoingTargetId !== undefined) {
+      const target = state.nodes[outgoingTargetId];
       const b = worldToScreen(target.wx, target.wy);
       ctx.moveTo(a.x, a.y);
       ctx.lineTo(b.x, b.y);
     }
-    for (const product of action.products) {
-      if (!product.targets.includes(selected.id)) continue;
+    for (const product of action.exactProducts) {
+      const targetId = product.targets[0];
+      if (targetId !== selected.id) continue;
       const source = state.nodes[product.source];
       const b = worldToScreen(source.wx, source.wy);
       ctx.moveTo(a.x, a.y);
