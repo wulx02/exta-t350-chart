@@ -221,10 +221,18 @@ function gridStep(pixelsPerUnit, minimumSpacing) {
   return Math.max(1, niceMultiplier * magnitude);
 }
 
+function currentGridSteps(scale = scales()) {
+  return {
+    x: gridStep(scale.x, 72),
+    y: gridStep(scale.y, 48),
+  };
+}
+
 function drawGrid() {
   const scale = scales();
-  const xTicks = gridTicks(state.view.x0, state.view.x1, gridStep(scale.x, 72));
-  const yTicks = gridTicks(state.view.y0, state.view.y1, gridStep(scale.y, 48));
+  const step = currentGridSteps(scale);
+  const xTicks = gridTicks(state.view.x0, state.view.x1, step.x);
+  const yTicks = gridTicks(state.view.y0, state.view.y1, step.y);
 
   ctx.save();
   ctx.beginPath();
@@ -675,7 +683,37 @@ searchForm.addEventListener("submit", (event) => {
 
   searchInput.setCustomValidity("");
   searchInput.value = `m${node.id}`;
+  searchInput.blur();
   selectNode(node.id, true);
+});
+
+window.addEventListener("keydown", (event) => {
+  if (!state.data || !state.width || !state.height) return;
+  const target = event.target;
+  const isEditing = target instanceof HTMLInputElement
+    || target instanceof HTMLTextAreaElement
+    || target instanceof HTMLSelectElement
+    || (target instanceof HTMLElement && target.isContentEditable);
+  if (event.defaultPrevented || isEditing || event.altKey || event.ctrlKey || event.metaKey) return;
+
+  const step = currentGridSteps();
+  let dx = 0;
+  let dy = 0;
+  if (event.key === "ArrowLeft") dx = -step.x;
+  else if (event.key === "ArrowRight") dx = step.x;
+  else if (event.key === "ArrowDown") dy = -step.y;
+  else if (event.key === "ArrowUp") dy = step.y;
+  else return;
+
+  event.preventDefault();
+  state.view = constrainToFirstQuadrant({
+    x0: state.view.x0 + dx,
+    x1: state.view.x1 + dx,
+    y0: state.view.y0 + dy,
+    y1: state.view.y1 + dy,
+  });
+  hoverLabel.hidden = true;
+  requestDraw();
 });
 
 function formatRange(min, max) {
