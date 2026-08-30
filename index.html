@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Interactive Adams chart for Ext over the mod-2 Steenrod algebra through internal degree t = 350, with multiplication by h_0 through h_8.">
   <title>Ext_𝒜 through t = 350</title>
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
   <header class="toolbar">
@@ -20,8 +20,8 @@
     <div
       id="action-toggles"
       class="action-toggles"
-      aria-label="Exact single-class multiplication lines"
-      title="A line is shown only when multiplication by h_i equals one class."
+      aria-label="Exact single-basis-element multiplication lines"
+      title="A line is shown only when multiplication by h_i equals one basis element."
     ></div>
     <form id="search-form" class="search" role="search">
       <input
@@ -31,7 +31,7 @@
         spellcheck="false"
         placeholder="m + digits"
         title="Enter m followed by digits, for example m68130"
-        aria-label="Search for a class by its m number"
+        aria-label="Search for a basis element by its m number"
         disabled
       >
       <button id="search-button" type="submit" disabled>Search</button>
@@ -39,7 +39,7 @@
     <div class="view-tools" aria-label="Chart view">
       <button id="zoom-out" type="button" title="Zoom out" aria-label="Zoom out">−</button>
       <button id="zoom-in" type="button" title="Zoom in" aria-label="Zoom in">+</button>
-      <button id="fit-view" type="button" title="Fit all classes">Fit</button>
+      <button id="fit-view" type="button" title="Fit all basis elements">Fit</button>
     </div>
   </header>
 
@@ -53,7 +53,7 @@
     </section>
     <aside id="inspector" class="inspector">
       <div class="inspector-head">
-        <span class="eyebrow">Selected class</span>
+        <span class="eyebrow">Selected basis element</span>
         <strong id="selected-name">None</strong>
       </div>
       <dl id="selected-details" class="details"></dl>
@@ -65,6 +65,6 @@
     <span id="viewport-status"></span>
     <span id="render-status"></span>
   </footer>
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>

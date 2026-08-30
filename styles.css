@@ -360,7 +360,7 @@ button:hover {
   white-space: nowrap;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1320px) {
   body {
     grid-template-rows: auto minmax(0, 1fr) 28px;
   }

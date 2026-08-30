@@ -87,7 +87,7 @@ function prepareData(data) {
     }
   }
   const { summary } = data;
-  datasetMeta.textContent = `t ≤ ${data.t_max} · ${summary.additive_basis.toLocaleString()} classes · ${summary.indecomposables.toLocaleString()} generators`;
+  datasetMeta.textContent = `t ≤ ${data.t_max} · ${summary.additive_basis.toLocaleString()} basis elements · ${summary.indecomposables.toLocaleString()} generators`;
 }
 
 function installActionToggles() {
@@ -680,7 +680,7 @@ searchForm.addEventListener("submit", (event) => {
 
   const node = state.nodes[Number(match[1])];
   if (!node) {
-    searchInput.setCustomValidity(`Class m${match[1]} was not found.`);
+    searchInput.setCustomValidity(`Basis element m${match[1]} was not found.`);
     searchInput.reportValidity();
     return;
   }
