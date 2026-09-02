@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Interactive Adams chart for Ext over the mod-2 Steenrod algebra through internal degree t = 350, with multiplication by h_0 through h_8.">
   <title>Ext_𝒜 through t = 350</title>
-  <link rel="stylesheet" href="styles.css?v=8">
+  <link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
   <header class="toolbar">
@@ -63,8 +63,34 @@
 
   <footer class="statusbar">
     <span id="viewport-status"></span>
+    <button id="data-sources-open" class="status-link" type="button">Data sources</button>
     <span id="render-status"></span>
   </footer>
-  <script src="app.js?v=10"></script>
+
+  <dialog id="data-sources-dialog" class="data-sources-dialog" aria-labelledby="data-sources-title">
+    <div class="data-sources-card">
+      <div class="data-sources-head">
+        <h2 id="data-sources-title">Data sources</h2>
+        <button id="data-sources-close" class="dialog-close" type="button" aria-label="Close data sources">×</button>
+      </div>
+      <section>
+        <h3>Minimal resolutions</h3>
+        <p>
+          The minimal-resolution data were computed using
+          <a href="https://github.com/wulx02/min_res" target="_blank" rel="noopener noreferrer">min_res</a>.
+        </p>
+      </section>
+      <section>
+        <h3>Multiplicative structure</h3>
+        <p>
+          The multiplicative-structure data were computed using a private implementation I wrote,
+          based on the approach presented by Weinan Lin in this
+          <a href="https://icerm.brown.edu/video_archive/4711" target="_blank" rel="noopener noreferrer">ICERM talk</a>.
+        </p>
+      </section>
+    </div>
+  </dialog>
+
+  <script src="app.js?v=11"></script>
 </body>
 </html>

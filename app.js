@@ -15,6 +15,9 @@ const actionToggles = document.getElementById("action-toggles");
 const searchForm = document.getElementById("search-form");
 const searchInput = document.getElementById("search-input");
 const searchButton = document.getElementById("search-button");
+const dataSourcesOpen = document.getElementById("data-sources-open");
+const dataSourcesDialog = document.getElementById("data-sources-dialog");
+const dataSourcesClose = document.getElementById("data-sources-close");
 
 const margin = { left: 58, right: 14, top: 14, bottom: 50 };
 const tilt = -17 * Math.PI / 180;
@@ -664,6 +667,12 @@ canvas.addEventListener("pointerleave", () => {
 document.getElementById("zoom-in").addEventListener("click", () => zoomAt(0.72));
 document.getElementById("zoom-out").addEventListener("click", () => zoomAt(1.38));
 document.getElementById("fit-view").addEventListener("click", fitAll);
+
+dataSourcesOpen.addEventListener("click", () => dataSourcesDialog.showModal());
+dataSourcesClose.addEventListener("click", () => dataSourcesDialog.close());
+dataSourcesDialog.addEventListener("click", (event) => {
+  if (event.target === dataSourcesDialog) dataSourcesDialog.close();
+});
 
 searchInput.addEventListener("input", () => searchInput.setCustomValidity(""));
 
